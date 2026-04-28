@@ -1,11 +1,357 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Vero Atelier | Artigianato Italiano Moderno</title>
+  <meta name="description" content="Vero Atelier: collezione esclusiva di artigianato italiano moderno. Pezzi iconici, finiture pregiate, eleganza contemporanea.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ["Cormorant Garamond", "serif"],
+            body: ["Manrope", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script defer src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --milk: #faf6ef;
+      --cream: #f2e9dc;
+      --charcoal: #121212;
+      --gold: #b08d57;
+      --forest: #1f4b3f;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: linear-gradient(180deg, #fcf8f2 0%, var(--milk) 46%, var(--cream) 100%);
+      color: var(--charcoal);
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: repeating-linear-gradient(
+        90deg,
+        rgba(176, 141, 87, 0.035) 0,
+        rgba(176, 141, 87, 0.035) 1px,
+        transparent 1px,
+        transparent 14px
+      );
+      opacity: 0.28;
+      z-index: -1;
+    }
+
+    .premium-shadow {
+      box-shadow: 0 28px 52px -34px rgba(18, 18, 18, 0.48);
+    }
+  </style>
 </head>
-<body>
-  
+<body class="font-body antialiased" x-data="storefront()" x-init="init()">
+  <header class="fixed inset-x-0 top-0 z-40">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-10">
+      <a href="#" class="font-heading text-3xl leading-none text-white drop-shadow-sm">Vero Atelier</a>
+      <button type="button" @click="toggleCart()" aria-label="Carrello" class="relative rounded-full border border-white/40 bg-black/25 p-3 text-white backdrop-blur-md transition duration-300 hover:bg-black/40">
+        <i data-lucide="shopping-bag" class="h-5 w-5"></i>
+        <span x-show="cartQuantity() > 0" x-transition class="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-red-500"></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="relative min-h-screen">
+      <img :src="heroImage" @error="loadHeroFallback" alt="Laboratorio artigianale italiano" class="absolute inset-0 h-full w-full object-cover">
+      <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/45 to-black/20"></div>
+      <div class="relative mx-auto flex min-h-screen w-full max-w-7xl items-center px-6 pb-16 pt-28 md:px-10">
+        <div class="max-w-3xl text-white">
+          <p class="mb-5 inline-flex items-center gap-2 rounded-full border border-white/35 bg-white/10 px-4 py-1.5 text-xs tracking-[0.18em] backdrop-blur-sm">ARTIGIANATO ITALIANO MODERNO</p>
+          <h1 class="font-heading text-5xl leading-[0.95] sm:text-6xl md:text-7xl">L'eccellenza artigiana, a portata di click.</h1>
+          <p class="mt-6 max-w-xl text-sm leading-relaxed text-white/90 sm:text-base">Ogni pezzo nasce da mani esperte, materiali selezionati e una visione contemporanea del design italiano.</p>
+          <a href="#collezione" class="mt-10 inline-flex items-center gap-2 rounded-full border border-transparent bg-[var(--gold)] px-7 py-3.5 text-sm font-semibold tracking-wide text-[#1c1c1c] transition duration-300 hover:-translate-y-0.5 hover:bg-[#c7a66f] hover:shadow-lg">Scopri la Collezione <i data-lucide="arrow-right" class="h-4 w-4"></i></a>
+        </div>
+      </div>
+    </section>
+
+    <section id="collezione" class="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-24">
+      <div class="mb-12 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="text-xs tracking-[0.18em] text-[var(--forest)]">SELEZIONE CURATA</p>
+          <h2 class="font-heading text-4xl leading-tight sm:text-5xl">Collezione In Evidenza</h2>
+        </div>
+        <p class="max-w-md text-sm leading-relaxed text-black/70">Linee essenziali, lavorazione manuale e presenza scenica: quattro icone per ambienti raffinati.</p>
+      </div>
+
+      <div class="grid gap-7 sm:grid-cols-2 xl:grid-cols-4">
+        <template x-for="product in products" :key="product.id">
+          <article class="premium-shadow group overflow-hidden rounded-lg border border-black/10 bg-white/75 backdrop-blur-sm">
+            <div class="relative aspect-[4/5] overflow-hidden">
+              <img :src="product.image" :alt="product.name" class="h-full w-full object-cover transition duration-700 group-hover:scale-110">
+              <span class="absolute left-3 top-3 rounded-full bg-[var(--gold)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#1c1c1c]">Edizione Limitata</span>
+            </div>
+            <div class="space-y-4 p-5">
+              <div>
+                <h3 class="font-heading text-2xl leading-tight" x-text="product.name"></h3>
+                <p class="mt-2 text-lg font-semibold text-[var(--forest)]" x-text="formatEUR(product.price)"></p>
+              </div>
+
+              <div class="flex items-center justify-between rounded-full border border-black/15 bg-[#f8f4ec] px-3 py-2">
+                <span class="text-xs font-semibold tracking-wide text-black/60">Quantita</span>
+                <div class="flex items-center gap-2">
+                  <button type="button" @click="decreaseProductQty(product)" class="rounded-full border border-black/20 p-1.5 transition hover:bg-white">
+                    <i data-lucide="minus" class="h-3.5 w-3.5"></i>
+                  </button>
+                  <span class="min-w-6 text-center text-sm font-semibold" x-text="product.qty"></span>
+                  <button type="button" @click="increaseProductQty(product)" class="rounded-full border border-black/20 p-1.5 transition hover:bg-white">
+                    <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button type="button" @click="addToCart(product)" class="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[var(--charcoal)] px-4 py-2.5 text-sm font-semibold transition duration-300 hover:bg-[var(--charcoal)] hover:text-white">
+                <i data-lucide="plus" class="h-4 w-4"></i>
+                Aggiungi al carrello
+              </button>
+            </div>
+          </article>
+        </template>
+      </div>
+    </section>
+
+    <section class="border-y border-black/10 bg-white/55 backdrop-blur-sm">
+      <div class="mx-auto grid max-w-7xl gap-8 px-6 py-14 sm:grid-cols-3 md:px-10">
+        <article class="flex items-start gap-4">
+          <span class="rounded-full bg-[var(--forest)]/10 p-3 text-[var(--forest)]"><i data-lucide="truck" class="h-5 w-5"></i></span>
+          <div>
+            <h3 class="font-semibold">Spedizione in 24h</h3>
+            <p class="mt-1 text-sm text-black/65">Consegna rapida e tracciabile in tutta Italia.</p>
+          </div>
+        </article>
+        <article class="flex items-start gap-4">
+          <span class="rounded-full bg-[var(--forest)]/10 p-3 text-[var(--forest)]"><i data-lucide="shield-check" class="h-5 w-5"></i></span>
+          <div>
+            <h3 class="font-semibold">Pagamenti Protetti</h3>
+            <p class="mt-1 text-sm text-black/65">Transazioni certificate con sistemi di sicurezza avanzati.</p>
+          </div>
+        </article>
+        <article class="flex items-start gap-4">
+          <span class="rounded-full bg-[var(--forest)]/10 p-3 text-[var(--forest)]"><i data-lucide="gem" class="h-5 w-5"></i></span>
+          <div>
+            <h3 class="font-semibold">Garanzia Artigianale</h3>
+            <p class="mt-1 text-sm text-black/65">Qualita verificata con cura su ogni singolo pezzo.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <div x-show="showToast" x-transition.opacity.duration.300ms class="pointer-events-none fixed left-1/2 top-24 z-50 -translate-x-1/2">
+    <div class="rounded-full bg-[var(--charcoal)] px-5 py-2.5 text-sm font-semibold text-white shadow-xl">Prodotto aggiunto!</div>
+  </div>
+
+  <div x-show="isCartOpen" x-transition.opacity class="fixed inset-0 z-50">
+    <button type="button" @click="isCartOpen = false" class="absolute inset-0 bg-black/35 backdrop-blur-[1px]" aria-label="Chiudi carrello"></button>
+    <aside x-transition:enter="transition duration-300 ease-out" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition duration-250 ease-in" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full" class="absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-[#fffdf9] p-6 shadow-2xl">
+      <div class="mb-4 flex items-center justify-between border-b border-black/10 pb-4">
+        <h3 class="font-heading text-3xl">Il Tuo Carrello</h3>
+        <button type="button" @click="isCartOpen = false" class="rounded-full border border-black/15 p-2 transition hover:bg-black hover:text-white" aria-label="Chiudi">
+          <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+      </div>
+
+      <template x-if="cart.length === 0">
+        <div class="mt-10 text-center">
+          <p class="text-sm text-black/65">Il carrello e ancora vuoto.</p>
+          <p class="mt-2 text-xs uppercase tracking-[0.15em] text-[var(--gold)]">Aggiungi un pezzo d'autore</p>
+        </div>
+      </template>
+
+      <div class="flex-1 space-y-4 overflow-y-auto pr-1">
+        <template x-for="item in cart" :key="item.id">
+          <article class="flex gap-3 rounded-lg border border-black/10 bg-white p-3">
+            <img :src="item.image" :alt="item.name" class="h-20 w-20 rounded-md object-cover">
+            <div class="flex-1">
+              <h4 class="font-heading text-2xl leading-tight" x-text="item.name"></h4>
+              <p class="text-sm font-semibold text-[var(--forest)]" x-text="formatEUR(item.price)"></p>
+              <div class="mt-2 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <button type="button" @click="decreaseCartItem(item.id)" class="rounded-full border border-black/20 p-1.5 transition hover:bg-[#f6efe4]">
+                    <i data-lucide="minus" class="h-3.5 w-3.5"></i>
+                  </button>
+                  <span class="min-w-6 text-center text-sm font-semibold" x-text="item.qty"></span>
+                  <button type="button" @click="increaseCartItem(item.id)" class="rounded-full border border-black/20 p-1.5 transition hover:bg-[#f6efe4]">
+                    <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                  </button>
+                </div>
+                <button type="button" @click="removeFromCart(item.id)" class="text-xs font-semibold uppercase tracking-wide text-black/55 transition hover:text-black">Rimuovi</button>
+              </div>
+            </div>
+          </article>
+        </template>
+      </div>
+
+      <div class="mt-5 border-t border-black/10 pt-4">
+        <div class="mb-4 flex items-center justify-between">
+          <span class="text-sm text-black/65">Totale</span>
+          <span class="text-xl font-semibold text-[var(--forest)]" x-text="formatEUR(cartTotal())"></span>
+        </div>
+        <button type="button" class="w-full rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-semibold tracking-wide text-white transition hover:bg-[#2a6353]">Procedi al Checkout</button>
+      </div>
+    </aside>
+  </div>
+
+  <a href="https://wa.me/393204155866" target="_blank" rel="noopener noreferrer" x-show="!isCartOpen" x-transition.opacity.duration.200ms class="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-semibold text-white shadow-2xl transition duration-300 hover:-translate-y-0.5 hover:bg-[#2a6353]" aria-label="Contatta su WhatsApp">
+    <i data-lucide="message-circle" class="h-4 w-4"></i>
+    Hai bisogno di aiuto?
+  </a>
+
+  <script>
+    function storefront() {
+      return {
+        isCartOpen: false,
+        showToast: false,
+        toastTimeout: null,
+        heroImage: "https://images.unsplash.com/photo-1506806732259-39c2d0268443?auto=format&fit=crop&w=2200&q=80",
+        heroFallbacks: [
+          "https://images.unsplash.com/photo-1721508490084-1b1de5b230d4?auto=format&fit=crop&w=2200&q=80",
+          "https://source.unsplash.com/2200x1400/?artisan,workshop,craftsmanship,italy"
+        ],
+        heroFallbackIndex: 0,
+        products: [
+          {
+            id: 1,
+            name: "Vaso Aurora",
+            price: 289,
+            qty: 1,
+            image: "https://images.unsplash.com/photo-1589051088132-06f36a22012a?auto=format&fit=crop&w=1000&q=80"
+          },
+          {
+            id: 2,
+            name: "Ciotola Sasso",
+            price: 169,
+            qty: 1,
+            image: "https://images.unsplash.com/photo-1589051079002-b140a970f568?auto=format&fit=crop&w=1000&q=80"
+          },
+          {
+            id: 3,
+            name: "Coppa Vento",
+            price: 219,
+            qty: 1,
+            image: "https://images.unsplash.com/photo-1506806732259-39c2d0268443?auto=format&fit=crop&w=1000&q=80"
+          },
+          {
+            id: 4,
+            name: "Set Pietra",
+            price: 349,
+            qty: 1,
+            image: "https://images.unsplash.com/photo-1584184924103-e310d9dc82fc?auto=format&fit=crop&w=1000&q=80"
+          }
+        ],
+        cart: [],
+        init() {
+          this.$nextTick(() => {
+            this.refreshIcons();
+          });
+        },
+        refreshIcons() {
+          if (window.lucide) {
+            window.lucide.createIcons();
+          }
+        },
+        toggleCart() {
+          this.isCartOpen = !this.isCartOpen;
+          this.$nextTick(() => this.refreshIcons());
+        },
+        loadHeroFallback(event) {
+          if (this.heroFallbackIndex < this.heroFallbacks.length) {
+            event.target.src = this.heroFallbacks[this.heroFallbackIndex];
+            this.heroFallbackIndex += 1;
+          }
+        },
+        formatEUR(value) {
+          return `EUR ${value}`;
+        },
+        increaseProductQty(product) {
+          if (product.qty < 20) {
+            product.qty += 1;
+          }
+          this.$nextTick(() => this.refreshIcons());
+        },
+        decreaseProductQty(product) {
+          if (product.qty > 1) {
+            product.qty -= 1;
+          }
+          this.$nextTick(() => this.refreshIcons());
+        },
+        cartQuantity() {
+          return this.cart.reduce((total, item) => total + item.qty, 0);
+        },
+        cartTotal() {
+          return this.cart.reduce((total, item) => total + item.qty * item.price, 0);
+        },
+        addToCart(product) {
+          const quantityToAdd = product.qty;
+          const existing = this.cart.find((item) => item.id === product.id);
+          if (existing) {
+            existing.qty += quantityToAdd;
+          } else {
+            this.cart.push({
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              image: product.image,
+              qty: quantityToAdd
+            });
+          }
+          this.showToast = true;
+          if (this.toastTimeout) {
+            clearTimeout(this.toastTimeout);
+          }
+          this.toastTimeout = setTimeout(() => {
+            this.showToast = false;
+          }, 1800);
+          this.$nextTick(() => this.refreshIcons());
+        },
+        increaseCartItem(id) {
+          const item = this.cart.find((product) => product.id === id);
+          if (item) {
+            item.qty += 1;
+          }
+          this.$nextTick(() => this.refreshIcons());
+        },
+        decreaseCartItem(id) {
+          const item = this.cart.find((product) => product.id === id);
+          if (!item) {
+            return;
+          }
+          if (item.qty > 1) {
+            item.qty -= 1;
+          } else {
+            this.removeFromCart(id);
+          }
+          this.$nextTick(() => this.refreshIcons());
+        },
+        removeFromCart(id) {
+          this.cart = this.cart.filter((item) => item.id !== id);
+          this.$nextTick(() => this.refreshIcons());
+        }
+      };
+    }
+  </script>
 </body>
 </html>
