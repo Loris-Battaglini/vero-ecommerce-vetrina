@@ -167,7 +167,7 @@
 
   <div x-show="showToast" x-cloak x-transition.opacity.duration.300ms class="fixed left-1/2 top-24 z-50 w-full max-w-md -translate-x-1/2 px-4">
     <div class="flex items-center justify-between gap-3 rounded-full bg-[var(--charcoal)] px-4 py-2.5 text-white shadow-xl">
-      <span class="text-sm font-semibold">Prodotto aggiunto!</span>
+      <span class="text-sm font-semibold" x-text="toastText"></span>
       <button type="button" @click="isCartOpen = true; showToast = false; $nextTick(() => refreshIcons())" class="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-white hover:text-[var(--charcoal)]">Visualizza carrello</button>
     </div>
   </div>
@@ -218,7 +218,14 @@
           <span class="text-sm text-black/65">Totale</span>
           <span class="text-xl font-semibold text-[var(--forest)]" x-text="formatEUR(cartTotal())"></span>
         </div>
-        <button type="button" class="w-full rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-semibold tracking-wide text-white transition hover:bg-[#2a6353]">Procedi al Checkout</button>
+        <button
+          type="button"
+          @click="proceedToCheckout()"
+          :disabled="cart.length === 0"
+          class="w-full rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-semibold tracking-wide text-white transition hover:bg-[#2a6353] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-[var(--forest)]"
+        >
+          Procedi al Checkout
+        </button>
       </div>
     </aside>
   </div>
@@ -238,7 +245,9 @@
       return {
         isCartOpen: false,
         showToast: false,
+        toastText: "Prodotto aggiunto!",
         toastTimeout: null,
+        checkoutPhone: "393204155866",
         heroImage: "https://images.unsplash.com/photo-1506806732259-39c2d0268443?auto=format&fit=crop&w=2200&q=80",
         heroFallbacks: [
           "https://images.unsplash.com/photo-1721508490084-1b1de5b230d4?auto=format&fit=crop&w=2200&q=80",
@@ -322,6 +331,40 @@
         cartTotal() {
           return this.cart.reduce((total, item) => total + item.qty * item.price, 0);
         },
+        showToastWithMessage(message, duration = 1800) {
+          this.toastText = message;
+          this.showToast = true;
+          if (this.toastTimeout) {
+            clearTimeout(this.toastTimeout);
+          }
+          this.toastTimeout = setTimeout(() => {
+            this.showToast = false;
+          }, duration);
+        },
+        proceedToCheckout() {
+          if (this.cart.length === 0) {
+            this.showToastWithMessage("Il carrello e vuoto.", 1700);
+            return;
+          }
+
+          const lines = this.cart.map((item) => {
+            const subtotal = item.price * item.qty;
+            return `- ${item.name} x${item.qty}: ${this.formatEUR(subtotal)}`;
+          });
+          const message = [
+            "Ciao! Vorrei procedere con questo ordine:",
+            "",
+            ...lines,
+            "",
+            `Totale: ${this.formatEUR(this.cartTotal())}`
+          ].join("\n");
+
+          const whatsappUrl = `https://wa.me/${this.checkoutPhone}?text=${encodeURIComponent(message)}`;
+          const whatsappWindow = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+          if (!whatsappWindow) {
+            window.location.href = whatsappUrl;
+          }
+        },
         addToCart(product) {
           const quantityToAdd = product.qty;
           const existing = this.cart.find((item) => item.id === product.id);
@@ -336,13 +379,7 @@
               qty: quantityToAdd
             });
           }
-          this.showToast = true;
-          if (this.toastTimeout) {
-            clearTimeout(this.toastTimeout);
-          }
-          this.toastTimeout = setTimeout(() => {
-            this.showToast = false;
-          }, 1800);
+          this.showToastWithMessage("Prodotto aggiunto!", 1800);
           this.$nextTick(() => this.refreshIcons());
         },
         increaseCartItem(id) {
