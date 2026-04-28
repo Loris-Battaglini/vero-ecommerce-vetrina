@@ -21,8 +21,8 @@
       }
     };
   </script>
-  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <script defer src="https://unpkg.com/lucide@latest"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <style>
     :root {
       --milk: #faf6ef;
@@ -61,15 +61,20 @@
     .premium-shadow {
       box-shadow: 0 28px 52px -34px rgba(18, 18, 18, 0.48);
     }
+
+    [x-cloak] {
+      display: none !important;
+    }
   </style>
 </head>
 <body class="font-body antialiased" x-data="storefront()" x-init="init()">
   <header class="fixed inset-x-0 top-0 z-40">
     <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-10">
       <a href="#" class="font-heading text-3xl leading-none text-white drop-shadow-sm">Vero Atelier</a>
-      <button type="button" @click="toggleCart()" aria-label="Carrello" class="relative rounded-full border border-white/40 bg-black/25 p-3 text-white backdrop-blur-md transition duration-300 hover:bg-black/40">
+      <button type="button" @click="toggleCart()" aria-label="Carrello" class="relative inline-flex items-center gap-2 rounded-full border border-white/40 bg-black/25 px-4 py-3 text-white backdrop-blur-md transition duration-300 hover:bg-black/40">
         <i data-lucide="shopping-bag" class="h-5 w-5"></i>
-        <span x-show="cartQuantity() > 0" x-transition class="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-red-500"></span>
+        <span class="hidden text-xs font-semibold uppercase tracking-[0.14em] sm:inline">Carrello</span>
+        <span x-show="cartQuantity() > 0" x-transition x-cloak class="absolute -right-2 -top-2 min-w-5 rounded-full bg-red-500 px-1.5 py-0.5 text-center text-[10px] font-bold text-white" x-text="cartQuantity()"></span>
       </button>
     </div>
   </header>
@@ -160,11 +165,14 @@
     </section>
   </main>
 
-  <div x-show="showToast" x-transition.opacity.duration.300ms class="pointer-events-none fixed left-1/2 top-24 z-50 -translate-x-1/2">
-    <div class="rounded-full bg-[var(--charcoal)] px-5 py-2.5 text-sm font-semibold text-white shadow-xl">Prodotto aggiunto!</div>
+  <div x-show="showToast" x-cloak x-transition.opacity.duration.300ms class="fixed left-1/2 top-24 z-50 w-full max-w-md -translate-x-1/2 px-4">
+    <div class="flex items-center justify-between gap-3 rounded-full bg-[var(--charcoal)] px-4 py-2.5 text-white shadow-xl">
+      <span class="text-sm font-semibold">Prodotto aggiunto!</span>
+      <button type="button" @click="isCartOpen = true; showToast = false; $nextTick(() => refreshIcons())" class="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-white hover:text-[var(--charcoal)]">Visualizza carrello</button>
+    </div>
   </div>
 
-  <div x-show="isCartOpen" x-transition.opacity class="fixed inset-0 z-50">
+  <div x-show="isCartOpen" x-cloak x-transition.opacity class="fixed inset-0 z-50">
     <button type="button" @click="isCartOpen = false" class="absolute inset-0 bg-black/35 backdrop-blur-[1px]" aria-label="Chiudi carrello"></button>
     <aside x-transition:enter="transition duration-300 ease-out" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition duration-250 ease-in" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full" class="absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-[#fffdf9] p-6 shadow-2xl">
       <div class="mb-4 flex items-center justify-between border-b border-black/10 pb-4">
@@ -215,7 +223,12 @@
     </aside>
   </div>
 
-  <a href="https://wa.me/393204155866" target="_blank" rel="noopener noreferrer" x-show="!isCartOpen" x-transition.opacity.duration.200ms class="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-semibold text-white shadow-2xl transition duration-300 hover:-translate-y-0.5 hover:bg-[#2a6353]" aria-label="Contatta su WhatsApp">
+  <button type="button" @click="isCartOpen = true; $nextTick(() => refreshIcons())" x-show="cartQuantity() > 0 && !isCartOpen" x-cloak x-transition.opacity.duration.200ms class="fixed bottom-24 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-[var(--charcoal)] px-5 py-3 text-sm font-semibold text-white shadow-2xl transition duration-300 hover:-translate-y-0.5 hover:bg-black" aria-label="Visualizza carrello">
+    <i data-lucide="shopping-bag" class="h-4 w-4"></i>
+    Visualizza carrello
+  </button>
+
+  <a href="https://wa.me/393204155866" target="_blank" rel="noopener noreferrer" x-show="!isCartOpen" x-cloak x-transition.opacity.duration.200ms class="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-semibold text-white shadow-2xl transition duration-300 hover:-translate-y-0.5 hover:bg-[#2a6353]" aria-label="Contatta su WhatsApp">
     <i data-lucide="message-circle" class="h-4 w-4"></i>
     Hai bisogno di aiuto?
   </a>
@@ -267,10 +280,15 @@
           this.$nextTick(() => {
             this.refreshIcons();
           });
+          window.addEventListener("load", () => this.refreshIcons(), { once: true });
         },
-        refreshIcons() {
-          if (window.lucide) {
+        refreshIcons(attempt = 0) {
+          if (window.lucide && typeof window.lucide.createIcons === "function") {
             window.lucide.createIcons();
+            return;
+          }
+          if (attempt < 8) {
+            window.setTimeout(() => this.refreshIcons(attempt + 1), 80);
           }
         },
         toggleCart() {
